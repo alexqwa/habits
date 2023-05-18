@@ -7,10 +7,12 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  Alert,
 } from "react-native"
 
 import { BackButton } from "../components/BackButton"
 import { Checkbox } from "../components/Checkbox"
+import { api } from "../lib/axios"
 
 const availableWeekDays = [
   "Domingo",
@@ -24,6 +26,7 @@ const availableWeekDays = [
 
 export function New() {
   const [weekDays, setWeekDays] = useState<number[]>([])
+  const [title, setTitle] = useState("")
 
   function handleToggleWeekDay(weekDayIndex: number) {
     if (weekDays.includes(weekDayIndex)) {
@@ -32,6 +35,27 @@ export function New() {
       )
     } else {
       setWeekDays((prevState) => [...prevState, weekDayIndex])
+    }
+  }
+
+  async function createNewHabit() {
+    try {
+      if (!title.trim() || weekDays.length === 0) {
+        Alert.alert(
+          "Novo hábito",
+          "Informe o nome do hábito e escolha a recorrência."
+        )
+      } else {
+        await api.post("/habits", { title, weekDays })
+
+        setTitle("")
+        setWeekDays([])
+
+        Alert.alert("Novo hábito", "Hábito criado com sucesso!")
+      }
+    } catch (error) {
+      console.log(error)
+      Alert.alert("Ops!", "Não foi possível criar um novo hábito.")
     }
   }
 
@@ -49,6 +73,8 @@ export function New() {
           placeholder="Ex.: Exercíocios, dormir bem, etc..."
           placeholderTextColor={colors.zinc[400]}
           className="h-12 pl-4 rounded-xl mt-3 bg-zinc-800 border-2 border-transparent text-white focus:border-2 focus:border-green-500"
+          onChangeText={setTitle}
+          value={title}
         />
         <Text className="font-inter600 mt-4 mb-3 text-white text-base">
           Qual a recorrência?
@@ -62,6 +88,7 @@ export function New() {
           />
         ))}
         <TouchableOpacity
+          onPress={createNewHabit}
           activeOpacity={0.7}
           className="w-full h-14 flex-row items-center justify-center bg-green-500 rounded-xl mt-6"
         >
